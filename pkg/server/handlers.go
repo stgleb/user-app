@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -58,3 +59,13 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, nil)
 }
 
+func (s *Server) forgotPassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		t := s.templateMap[ForgotPassword]
+		t.Execute(w, nil)
+		return
+	}
+
+	email := r.FormValue("email")
+	log.Println(email)
+}

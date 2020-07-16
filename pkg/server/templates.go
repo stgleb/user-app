@@ -15,6 +15,7 @@ const (
 	SignUp = "signup"
 	UserInfo = "user"
 	UserEditInfo = "user_edit"
+	ForgotPassword = "forgot_password"
 )
 
 func (s *Server) ParseTemplates(templateMap map[string]*template.Template, dirname string) error {

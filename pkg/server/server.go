@@ -28,6 +28,7 @@ func NewServer(addr, templatesDir string) (*Server, error) {
 	router.HandleFunc("/login/google", srv.loginGoogle)
 	router.HandleFunc("/signup/google", srv.signUpGoogle)
 	router.HandleFunc("/callback", srv.callback)
+	router.HandleFunc("/forgot_password", srv.forgotPassword)
 	httpSrv := &http.Server{
 		Addr:    addr,
 		Handler: router,
