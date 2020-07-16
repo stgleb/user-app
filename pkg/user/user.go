@@ -2,7 +2,7 @@ package user
 
 type User struct {
 	Id           string `json:"id"`
-	UserName     string `json:"user_name"`
+	Name         string `json:"name"`
 	IsActive     bool   `json:"is_active"`
 	FullName     string `json:"full_name"`
 	Address      string `json:"address"`

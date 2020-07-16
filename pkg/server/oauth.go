@@ -1,9 +1,12 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"user-app/pkg/user"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -19,18 +22,7 @@ func InitOAuth(clientId, clientSecret string) {
 		ClientID:     clientId,
 		ClientSecret: clientSecret,
 		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/contacts",
-			"https://www.googleapis.com/auth/contacts.readonly",
-			"https://www.googleapis.com/auth/directory.readonly",
-			"https://www.googleapis.com/auth/user.addresses.read",
-			"https://www.googleapis.com/auth/user.birthday.read",
-			"https://www.googleapis.com/auth/user.emails.read",
-			"https://www.googleapis.com/auth/user.gender.read",
-			"https://www.googleapis.com/auth/user.organization.read",
-			"https://www.googleapis.com/auth/user.phonenumbers.read",
-			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile",
+			"https://www.googleapis.com/auth/userinfo",
 		},
 		Endpoint: google.Endpoint,
 	}
@@ -44,25 +36,35 @@ func (s *Server) signUpGoogle(w http.ResponseWriter, r *http.Request) {
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	code := r.FormValue("code")
-	if state != stateToken {
-		http.Error(w, "invalid oauth state", http.StatusInternalServerError)
-		return
-	}
-	token, err := googleOauthConfig.Exchange(oauth2.NoContext, code)
+	user, err := getUserInfo(r.Context(), state, code)
+
 	if err != nil {
-		http.Error(w, fmt.Sprintf("code exchange failed: %s", err.Error()), http.StatusInternalServerError)
-		return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	json.NewEncoder(w).Encode(user)
+}
+
+func getUserInfo(ctx context.Context, state string, code string) (*user.User, error) {
+	if state != stateToken {
+		return nil, fmt.Errorf("invalid oauth state")
+	}
+	token, err := googleOauthConfig.Exchange(ctx, code)
+	if err != nil {
+		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
 	}
 	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed getting user info: %s", err.Error()), http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed reading response body: %s", err.Error()), http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
 	}
-	fmt.Fprintf(w, "Content: %s\n", contents)
+
+	user := &user.User{}
+	if err := json.Unmarshal(contents, user); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
