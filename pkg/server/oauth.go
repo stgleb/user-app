@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"user-app/pkg/user"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	"user-app/pkg/user"
 )
 
 var (
@@ -28,6 +29,11 @@ func InitOAuth(clientId, clientSecret string) {
 	}
 }
 
+func (s *Server) loginGoogle(w http.ResponseWriter, r *http.Request) {
+	url := googleOauthConfig.AuthCodeURL(stateToken)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+
 func (s *Server) signUpGoogle(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(stateToken)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
@@ -36,15 +42,23 @@ func (s *Server) signUpGoogle(w http.ResponseWriter, r *http.Request) {
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	code := r.FormValue("code")
-	user, err := getUserInfo(r.Context(), state, code)
-
+	u, err := getUserInfo(r.Context(), state, code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	json.NewEncoder(w).Encode(user)
+	// Codepath for login of existing user
+	_, err = s.repo.FindById(u.Id)
+	if err == user.NotFound {
+		_, err := s.repo.Store(u)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	http.Redirect(w, r, fmt.Sprintf("/%s", u.Id), http.StatusMovedPermanently)
 }
 
-func getUserInfo(ctx context.Context, state string, code string) (*user.User, error) {
+func getUserInfo(ctx context.Context, state string, code string) (u *user.User, err error) {
 	if state != stateToken {
 		return nil, fmt.Errorf("invalid oauth state")
 	}
@@ -56,15 +70,16 @@ func getUserInfo(ctx context.Context, state string, code string) (*user.User, er
 	if err != nil {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
-	defer response.Body.Close()
+	defer func() {
+		err = response.Body.Close()
+	}()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
 	}
-
-	user := &user.User{}
-	if err := json.Unmarshal(contents, user); err != nil {
+	u = &user.User{}
+	if err := json.Unmarshal(contents, u); err != nil {
 		return nil, err
 	}
-	return user, nil
+	return u, nil
 }

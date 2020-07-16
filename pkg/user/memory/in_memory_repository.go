@@ -16,6 +16,9 @@ func NewRepository() *InMemoryRepository {
 }
 
 func (r *InMemoryRepository) FindById(id string) (*user.User, error) {
+	if _, ok := r.db[id]; !ok {
+		return nil, user.NotFound
+	}
 	return r.db[id], nil
 }
 
@@ -25,7 +28,7 @@ func (r *InMemoryRepository) FindByEmail(email string) (*user.User, error) {
 			return u, nil
 		}
 	}
-	return nil, errors.New("not found")
+	return nil, user.NotFound
 }
 
 func (r *InMemoryRepository) FindAll() ([]*user.User, error) {

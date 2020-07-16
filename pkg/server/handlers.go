@@ -27,8 +27,3 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) editInfo(w http.ResponseWriter, r *http.Request) {
 }
-
-func (s *Server) loginGoogle(w http.ResponseWriter, r *http.Request) {
-	url := googleOauthConfig.AuthCodeURL(stateToken)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"user-app/pkg/user"
 	"user-app/pkg/user/memory"
 )
@@ -24,15 +25,12 @@ func NewServer(addr string) *Server {
 	router.HandleFunc("/login/google", srv.loginGoogle)
 	router.HandleFunc("/signup/google", srv.signUpGoogle)
 	router.HandleFunc("/callback", srv.callback)
-
 	httpSrv := &http.Server{
 		Addr:    addr,
 		Handler: router,
 	}
-
 	srv.srv = httpSrv
 	srv.repo = memory.NewRepository()
-
 	return srv
 }
 
