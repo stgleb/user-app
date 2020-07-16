@@ -12,6 +12,7 @@ var (
 	host string
 	clientId string
 	clientSecret string
+	templatesDir string
 )
 
 func main(){
@@ -21,10 +22,15 @@ func main(){
 		"google client_id")
 	flag.StringVar(&clientSecret, "client_secret", "7Oso-KMGSbvt0ksiAHuJAbCS",
 		"google client_secret")
+	flag.StringVar(&templatesDir, "templatesDir", "templates",
+		"templates dir path")
 	flag.Parse()
 	server.InitOAuth(clientId, clientSecret)
 	addr := fmt.Sprintf("%s:%d", host, port)
-	srv := server.NewServer(addr)
+	srv, err := server.NewServer(addr, templatesDir)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Printf("Run server on %s\n", addr)
 	log.Fatal(srv.Run())
 }

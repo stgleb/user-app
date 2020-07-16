@@ -3,6 +3,7 @@ package memory
 import (
 	"errors"
 	"user-app/pkg/user"
+	"user-app/pkg/user/repository"
 )
 
 type InMemoryRepository struct {
@@ -56,5 +57,5 @@ func (r *InMemoryRepository) Store(user *user.User) (string, error) {
 }
 
 func init() {
-	var _ user.Repository = &InMemoryRepository{}
+	var _ repository.Repository = &InMemoryRepository{}
 }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<table>
+    <tr>
+        <td>User Id: </td>
+        <td>{{ .Id }}</td>
+    </tr>
+    <tr>
+        <td>User Name: </td>
+        <td>{{ .Name }}</td>
+    </tr>
+    <tr>
+        <td>Address: </td>
+        <td>{{ .Address }}</td>
+    </tr>
+    <tr>
+        <td>Email: </td>
+        <td>{{ .Email }}</td>
+    </tr>
+    <tr>
+        <td>Phone: </td>
+        <td>{{ .Telephone }}</td>
+    </tr>
+</table>
+<a href="/user/{{ .Id}}/edit">Edit user</a>
+</body>
+</html>

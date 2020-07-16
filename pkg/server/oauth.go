@@ -23,7 +23,18 @@ func InitOAuth(clientId, clientSecret string) {
 		ClientID:     clientId,
 		ClientSecret: clientSecret,
 		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo",
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/contacts",
+			"https://www.googleapis.com/auth/contacts.readonly",
+			"https://www.googleapis.com/auth/directory.readonly",
+			"https://www.googleapis.com/auth/user.addresses.read",
+			"https://www.googleapis.com/auth/user.birthday.read",
+			"https://www.googleapis.com/auth/user.emails.read",
+			"https://www.googleapis.com/auth/user.gender.read",
+			"https://www.googleapis.com/auth/user.organization.read",
+			"https://www.googleapis.com/auth/user.phonenumbers.read",
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
 		},
 		Endpoint: google.Endpoint,
 	}
@@ -31,12 +42,12 @@ func InitOAuth(clientId, clientSecret string) {
 
 func (s *Server) loginGoogle(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(stateToken)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%s&&type=login", url), http.StatusTemporaryRedirect)
 }
 
 func (s *Server) signUpGoogle(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(stateToken)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%s&&type=signup", url), http.StatusTemporaryRedirect)
 }
 
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +66,7 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	http.Redirect(w, r, fmt.Sprintf("/%s", u.Id), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusMovedPermanently)
 }
 
 func getUserInfo(ctx context.Context, state string, code string) (u *user.User, err error) {
