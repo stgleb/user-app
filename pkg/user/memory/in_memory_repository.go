@@ -5,15 +5,21 @@ import (
 	"user-app/pkg/user"
 )
 
-type InMemoryRepository struct{
+type InMemoryRepository struct {
 	db map[string]*user.User
 }
 
-func(r *InMemoryRepository) FindById(id string) (*user.User, error) {
+func NewRepository() *InMemoryRepository {
+	return &InMemoryRepository{
+		db: make(map[string]*user.User),
+	}
+}
+
+func (r *InMemoryRepository) FindById(id string) (*user.User, error) {
 	return r.db[id], nil
 }
 
-func(r *InMemoryRepository) FindByEmail(email string) (*user.User, error) {
+func (r *InMemoryRepository) FindByEmail(email string) (*user.User, error) {
 	for _, u := range r.db {
 		if u.Email == email {
 			return u, nil
@@ -22,7 +28,7 @@ func(r *InMemoryRepository) FindByEmail(email string) (*user.User, error) {
 	return nil, errors.New("not found")
 }
 
-func(r *InMemoryRepository) FindAll() ([]*user.User, error) {
+func (r *InMemoryRepository) FindAll() ([]*user.User, error) {
 	users := make([]*user.User, 0)
 	for _, u := range r.db {
 		users = append(users, u)
@@ -31,7 +37,7 @@ func(r *InMemoryRepository) FindAll() ([]*user.User, error) {
 	return users, nil
 }
 
-func(r *InMemoryRepository)	Update(user *user.User) error {
+func (r *InMemoryRepository) Update(user *user.User) error {
 	_, ok := r.db[user.Id]
 	if !ok {
 		return errors.New("not found")
@@ -41,11 +47,11 @@ func(r *InMemoryRepository)	Update(user *user.User) error {
 	return nil
 }
 
-func(r *InMemoryRepository) Store(user *user.User) (string, error) {
+func (r *InMemoryRepository) Store(user *user.User) (string, error) {
 	r.db[user.Id] = user
 	return user.Id, nil
 }
 
-func init(){
+func init() {
 	var _ user.Repository = &InMemoryRepository{}
 }
