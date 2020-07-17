@@ -11,11 +11,13 @@ import (
 )
 
 const (
-	Login = "login"
-	SignUp = "signup"
-	UserInfo = "user"
-	UserEditInfo = "user_edit"
+	Login          = "login"
+	SignUp         = "signup"
+	UserInfo       = "user"
+	UserEditInfo   = "user_edit"
 	ForgotPassword = "forgot_password"
+	Email          = "email"
+	Reset          = "reset"
 )
 
 func (s *Server) ParseTemplates(templateMap map[string]*template.Template, dirname string) error {

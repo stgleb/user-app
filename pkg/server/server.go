@@ -11,15 +11,23 @@ import (
 )
 
 type Server struct {
-	repo repository.Repository
-	srv  *http.Server
-	templateMap map[string]*template.Template
+	SmtpServerHost string
+	SmtpServerPort int
+	SmtpUser       string
+	SmtpPassowrd   string
+	repo           repository.Repository
+	srv            *http.Server
+	templateMap    map[string]*template.Template
 }
 
-func NewServer(addr, templatesDir string) (*Server, error) {
+func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, smtpUser, smtpPassword string) (*Server, error) {
 	router := mux.NewRouter()
 	srv := &Server{
-		templateMap: make(map[string]*template.Template),
+		SmtpServerHost: smtpServerHost,
+		SmtpServerPort: smtpServerPort,
+		SmtpUser:       smtpUser,
+		SmtpPassowrd:   smtpPassword,
+		templateMap:    make(map[string]*template.Template),
 	}
 	router.HandleFunc("/user/{id}", srv.userInfo).Methods(http.MethodGet)
 	router.HandleFunc("/user/{id}/edit", srv.editUserInfo).Methods(http.MethodPut, http.MethodGet)
@@ -28,7 +36,8 @@ func NewServer(addr, templatesDir string) (*Server, error) {
 	router.HandleFunc("/login/google", srv.loginGoogle)
 	router.HandleFunc("/signup/google", srv.signUpGoogle)
 	router.HandleFunc("/callback", srv.callback)
-	router.HandleFunc("/forgot_password", srv.forgotPassword)
+	router.HandleFunc("/password/forget", srv.forgetPassword).Methods(http.MethodGet, http.MethodPost)
+	router.HandleFunc("/password/reset", srv.resetPassword).Methods(http.MethodGet, http.MethodPost)
 	httpSrv := &http.Server{
 		Addr:    addr,
 		Handler: router,

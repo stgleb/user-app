@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+<form action="/password/reset" method="post">
+    <label for="email">Enter new password:</label><br>
+    <input type="email" name="email" placeholder="Email Address"  value="{{ .Email }}" required="required"><br>
+    <input type="password" name="password" placeholder="Password" required="required"><br>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
