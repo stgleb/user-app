@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -17,6 +18,18 @@ var (
 )
 
 func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "user")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Redirect unauthenticated user to login page
+	userId := session.Values["user"]
+	if userId == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/user/%v", userId), http.StatusFound)
 }
 
 func (s *Server) userInfo(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +77,7 @@ func (s *Server) editUserInfo(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusMovedPermanently)
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusFound)
 	}
 }
 
@@ -90,7 +103,11 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusMovedPermanently)
+		if err := s.loginUser(u.Id, w, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusFound)
 	}
 }
 
@@ -117,18 +134,18 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 
 		passwordHash := sha256.Sum256([]byte(password))
 		u := &user.User{
-			Name:  username,
-			Email: email,
+			Name:         username,
+			Email:        email,
 			PasswordHash: passwordHash[:],
-			Telephone: phone,
-			Address: address,
+			Telephone:    phone,
+			Address:      address,
 		}
 		userId, err := s.repo.Store(u)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusMovedPermanently)
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusFound)
 	}
 }
 
@@ -170,7 +187,7 @@ func (s *Server) resetPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		token.Used = true
-		if err := s.repo.StoreToken(token);err != nil {
+		if err := s.repo.StoreToken(token); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -200,4 +217,34 @@ func (s *Server) resetPassword(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write([]byte("Password has been changed"))
 	}
+}
+
+// logout revokes authentication for a user
+func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "user")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session.Values["user"] = nil
+	session.Options.MaxAge = -1
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (s *Server) loginUser(userId string, w http.ResponseWriter, r *http.Request) error {
+	session, err := store.Get(r, "user")
+	if err != nil {
+		return errors.New("error getting user")
+	}
+	session.Values["user"] = userId
+	err = session.Save(r, w)
+	if err != nil {
+		return errors.New("error saving user")
+	}
+	return nil
 }

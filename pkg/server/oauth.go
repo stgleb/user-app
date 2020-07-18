@@ -42,12 +42,12 @@ func InitOAuth(clientId, clientSecret string) {
 
 func (s *Server) loginGoogle(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(stateToken)
-	http.Redirect(w, r, fmt.Sprintf("%s&&type=login", url), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%s&&type=login", url), http.StatusFound)
 }
 
 func (s *Server) signUpGoogle(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(stateToken)
-	http.Redirect(w, r, fmt.Sprintf("%s&&type=signup", url), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%s&&type=signup", url), http.StatusFound)
 }
 
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +55,11 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
 	u, err := getUserInfo(r.Context(), state, code)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Store user info in session cookie
+	if err := s.loginUser(u.Id, w, r); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
