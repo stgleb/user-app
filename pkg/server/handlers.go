@@ -140,6 +140,11 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 			Telephone:    phone,
 			Address:      address,
 		}
+		// Store user info in session cookie
+		if err := s.loginUser(u.Id, w, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		userId, err := s.repo.Store(u)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
