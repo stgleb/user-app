@@ -15,18 +15,20 @@ type Server struct {
 	SmtpServerPort int
 	SmtpUser       string
 	SmtpPassowrd   string
+	googleApiKey   string
 	repo           repository.Repository
 	srv            *http.Server
 	templateMap    map[string]*template.Template
 }
 
-func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, smtpUser, smtpPassword string) (*Server, error) {
+func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, smtpUser, smtpPassword, googleApiKey string) (*Server, error) {
 	router := mux.NewRouter()
 	srv := &Server{
 		SmtpServerHost: smtpServerHost,
 		SmtpServerPort: smtpServerPort,
 		SmtpUser:       smtpUser,
 		SmtpPassowrd:   smtpPassword,
+		googleApiKey:   googleApiKey,
 		templateMap:    make(map[string]*template.Template),
 	}
 	router.HandleFunc("/user/{id}", srv.userInfo).Methods(http.MethodGet)

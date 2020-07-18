@@ -34,8 +34,8 @@ func (s *Server) sendResetPasswordEmail(hostName string, email string) error {
 		return err
 	}
 	if err := smtp.SendMail(fmt.Sprintf("%s:%d", "smtp.gmail.com", 587),
-		smtp.PlainAuth("", "",
-		"", "smtp.gmail.com"),
+		smtp.PlainAuth("", "glebstepanov1992@gmail.com",
+		"djcyamfekwiecydx", "smtp.gmail.com"),
 		"glebstepanov1992@gmail.com", []string{email}, buffer.Bytes());err != nil {
 		return err
 	}

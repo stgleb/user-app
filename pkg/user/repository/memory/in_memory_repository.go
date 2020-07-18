@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"user-app/pkg/user"
 	"user-app/pkg/user/repository"
 )
@@ -54,6 +55,9 @@ func (r *InMemoryRepository) Update(user *user.User) error {
 }
 
 func (r *InMemoryRepository) Store(user *user.User) (string, error) {
+	if user.Id == "" {
+		user.Id = uuid.New().String()
+	}
 	r.userDb[user.Id] = user
 	return user.Id, nil
 }

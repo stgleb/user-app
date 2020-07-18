@@ -18,14 +18,15 @@ var (
 	smtpServerPort int
 	smtpUser       string
 	smptPassword   string
+	googleApiKey string
 )
 
 func main() {
 	flag.IntVar(&port, "port", 8080, "port number")
 	flag.StringVar(&host, "host", "localhost", "hostname")
-	flag.StringVar(&clientId, "client_id", "",
+	flag.StringVar(&clientId, "client_id", "436250024602-ia4g4uq0uj14t21snoquq0dr094ivi7k.apps.googleusercontent.com",
 		"google client_id")
-	flag.StringVar(&clientSecret, "client_secret", "",
+	flag.StringVar(&clientSecret, "client_secret", "7Oso-KMGSbvt0ksiAHuJAbCS",
 		"google client_secret")
 	flag.StringVar(&templatesDir, "templatesDir", "templates",
 		"templates dir path")
@@ -33,11 +34,13 @@ func main() {
 	flag.IntVar(&smtpServerPort, "smtpServerPort", 2525, "smtp server port")
 	flag.StringVar(&smtpUser, "smtpUser", "967fe121c1f173", "smtp user")
 	flag.StringVar(&smptPassword, "smtpPassword", "4ecbcd773762b7", "smtp password")
+	flag.StringVar(&googleApiKey, "googleApiKey",
+		"", "google api key")
 	flag.Parse()
 	server.InitOAuth(clientId, clientSecret)
 	addr := fmt.Sprintf("%s:%d", host, port)
 	srv, err := server.NewServer(addr, templatesDir, smtpServerHost,
-		smtpServerPort, smtpUser, smptPassword)
+		smtpServerPort, smtpUser, smptPassword, googleApiKey)
 	if err != nil {
 		log.Fatal(err)
 	}

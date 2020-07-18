@@ -78,8 +78,41 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
-	t := s.templateMap[SignUp]
-	t.Execute(w, nil)
+	if r.Method == http.MethodGet {
+		t := s.templateMap[SignUp]
+		t.Execute(w, struct {
+			ApiKey string
+		}{
+			ApiKey: s.googleApiKey,
+		})
+	} else {
+		username := r.FormValue("username")
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+		phone := r.FormValue("phone")
+		address := r.FormValue("address")
+
+		if u, _ := s.repo.FindByEmail(email); u != nil {
+			http.Error(w, fmt.Sprintf("user with email %s already exists", email),
+				http.StatusConflict)
+			return
+		}
+
+		passwordHash := sha256.Sum256([]byte(password))
+		u := &user.User{
+			Name:  username,
+			Email: email,
+			PasswordHash: passwordHash[:],
+			Telephone: phone,
+			Address: address,
+		}
+		userId, err := s.repo.Store(u)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusMovedPermanently)
+	}
 }
 
 func (s *Server) forgetPassword(w http.ResponseWriter, r *http.Request) {
