@@ -32,7 +32,7 @@ func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, sm
 		templateMap:    make(map[string]*template.Template),
 	}
 	router.HandleFunc("/user/{id}", srv.userInfo).Methods(http.MethodGet)
-	router.HandleFunc("/user/{id}/edit", srv.editUserInfo).Methods(http.MethodPut, http.MethodGet)
+	router.HandleFunc("/user/{id}/edit", srv.editUserInfo).Methods(http.MethodPost, http.MethodGet)
 	router.HandleFunc("/login", srv.login)
 	router.HandleFunc("/signup", srv.signUp)
 	router.HandleFunc("/login/google", srv.loginGoogle)

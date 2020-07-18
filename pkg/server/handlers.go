@@ -47,7 +47,24 @@ func (s *Server) editUserInfo(w http.ResponseWriter, r *http.Request) {
 		t := s.templateMap[UserEditInfo]
 		t.Execute(w, u)
 	} else {
-	  // TODO(stgleb): Implement this
+		name := r.FormValue("name")
+		email := r.FormValue("email")
+		phone := r.FormValue("phone")
+		address := r.FormValue("address")
+		u, err := s.repo.FindByEmail(email)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		u.Name = name
+		u.Telephone = phone
+		u.Address = address
+		userId, err := s.repo.Store(u)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusMovedPermanently)
 	}
 }
 

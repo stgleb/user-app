@@ -4,15 +4,15 @@
 
 <h2>HTML Forms</h2>
 
-<form action="/user/{{ .Id }}/edit">
+<form action="/user/{{ .Id }}/edit" method="post">
     <label for="fname">Name:</label><br>
     <input type="text" id="name" name="name" value="{{ .Name }}"><br>
     <label for="address">Address:</label><br>
     <input type="text" id="address" name="address" value="{{ .Address }}"><br>
     <label for="email">Email:</label><br>
     <input type="text" id="email" name="email" value="{{ .Email }}"><br>
-    <label for="telephone">Telephone:</label><br>
-    <input type="text" id="telephone" name="telephone" value="{{ .Telephone }}"><br>
+    <label for="phone">Telephone:</label><br>
+    <input type="text" id="phone" name="phone" value="{{ .Telephone }}"><br>
     <input type="submit" value="Submit">
 </form>
 </body>
