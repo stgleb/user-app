@@ -20,6 +20,7 @@ const (
 	Reset          = "reset"
 )
 
+// ParseTemplates parse templates in template folder
 func (s *Server) ParseTemplates(templateMap map[string]*template.Template, dirname string) error {
 	if len(dirname) == 0 {
 		return nil

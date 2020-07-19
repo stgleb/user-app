@@ -19,6 +19,7 @@ type Repository struct {
 	db   *sql.DB
 }
 
+// NewRepository create instance of Mysql repository
 func NewRepository(opts repository.MySQLOpts) (*Repository, error) {
 	db, err := sql.Open(driverName,
 		fmt.Sprintf("%s:%s@%s(%s:%d)/%s", opts.User,
@@ -39,6 +40,7 @@ func NewRepository(opts repository.MySQLOpts) (*Repository, error) {
 	}, nil
 }
 
+// FindById finds user by id
 func (r *Repository) FindById(ctx context.Context, id string) (*user.User, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -63,6 +65,7 @@ func (r *Repository) FindById(ctx context.Context, id string) (*user.User, error
 	return nil, user.NotFound
 }
 
+// FindByEmail finds user by email
 func (r *Repository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -87,6 +90,7 @@ func (r *Repository) FindByEmail(ctx context.Context, email string) (*user.User,
 	return nil, user.NotFound
 }
 
+// Update update user entity
 func (r *Repository) Update(ctx context.Context, u *user.User) error {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -106,6 +110,7 @@ func (r *Repository) Update(ctx context.Context, u *user.User) error {
 	return nil
 }
 
+// Store new user entity
 func (r *Repository) Store(ctx context.Context, user *user.User) (string, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -123,6 +128,7 @@ func (r *Repository) Store(ctx context.Context, user *user.User) (string, error)
 	return user.Id, nil
 }
 
+// StoreToken store token entity
 func (r *Repository) StoreToken(ctx context.Context, token *user.Token) error {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -139,6 +145,7 @@ func (r *Repository) StoreToken(ctx context.Context, token *user.Token) error {
 	return nil
 }
 
+// GetByEmail get token by email
 func (r *Repository) GetByEmail(ctx context.Context, email string) (*user.Token, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -164,6 +171,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (*user.Token,
 	return nil, user.NotFound
 }
 
+// GetByToken get token by it value
 func (r *Repository) GetByToken(ctx context.Context, tokenValue string) (*user.Token, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -189,6 +197,7 @@ func (r *Repository) GetByToken(ctx context.Context, tokenValue string) (*user.T
 	return nil, user.NotFound
 }
 
+// DisableToken mark token as used
 func (r *Repository) DisableToken(ctx context.Context, tokenValue string) error {
 	tx, err := r.db.Begin()
 	if err != nil {

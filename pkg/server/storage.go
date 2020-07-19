@@ -13,6 +13,7 @@ const (
 	InMemory = "memory"
 )
 
+// NewRepository creates new configured instance of Repository interface
 func NewRepository(repositoryType string, opts repository.Opts) (repository.Repository, error) {
 	switch repositoryType {
 	case MySQL:

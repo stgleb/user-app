@@ -37,6 +37,7 @@ type Server struct {
 	templateMap    map[string]*template.Template
 }
 
+// NewServer creates configured server instance ready to run
 func NewServer(addr, templatesDir, repositoryType string, repositoryOpts repository.Opts, smtpServerHost string,
 	smtpServerPort int, smtpUser, smtpPassword, googleApiKey string) (*Server, error) {
 	router := mux.NewRouter()
