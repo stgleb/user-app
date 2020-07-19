@@ -71,7 +71,7 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusFound)
 }
 
 func getUserInfo(ctx context.Context, state string, code string) (u *user.User, err error) {

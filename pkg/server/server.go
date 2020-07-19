@@ -3,17 +3,16 @@ package server
 import (
 	"html/template"
 	"net/http"
-	"os"
-	"user-app/pkg/user/repository"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 
+	"user-app/pkg/user/repository"
 	"user-app/pkg/user/repository/memory"
 )
 
-var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+var store *sessions.CookieStore
 
 func init() {
 	authKeyOne := securecookie.GenerateRandomKey(64)
@@ -32,7 +31,8 @@ type Server struct {
 	SmtpServerHost string
 	SmtpServerPort int
 	SmtpUser       string
-	SmtpPassowrd   string
+	SmtpPassword   string
+	EmailFrom      string
 	googleApiKey   string
 	repo           repository.Repository
 	srv            *http.Server
@@ -45,7 +45,7 @@ func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, sm
 		SmtpServerHost: smtpServerHost,
 		SmtpServerPort: smtpServerPort,
 		SmtpUser:       smtpUser,
-		SmtpPassowrd:   smtpPassword,
+		SmtpPassword:   smtpPassword,
 		googleApiKey:   googleApiKey,
 		templateMap:    make(map[string]*template.Template),
 	}

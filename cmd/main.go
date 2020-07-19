@@ -30,9 +30,9 @@ func main() {
 		"google client_secret")
 	flag.StringVar(&templatesDir, "templatesDir", "templates",
 		"templates dir path")
-	flag.StringVar(&smtpServerHost, "smtpServerHost", "smtp.mailtrap.io", "smtp server host")
-	flag.IntVar(&smtpServerPort, "smtpServerPort", 2525, "smtp server port")
-	flag.StringVar(&smtpUser, "smtpUser", "", "smtp user")
+	flag.StringVar(&smtpServerHost, "smtpServerHost", "smtp.gmail.com", "smtp server host")
+	flag.IntVar(&smtpServerPort, "smtpServerPort", 587, "smtp server port")
+	flag.StringVar(&smtpUser, "smtpUser", "glebstepanov1992@gmail.com", "smtp user")
 	flag.StringVar(&smptPassword, "smtpPassword", "", "smtp password")
 	flag.StringVar(&googleApiKey, "googleApiKey",
 		"", "google api key")
