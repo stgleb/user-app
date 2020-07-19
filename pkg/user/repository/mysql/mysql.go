@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 
 	"user-app/pkg/user"
 	"user-app/pkg/user/repository"
@@ -29,8 +30,15 @@ func NewRepository(opts repository.MySQLOpts) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Check connection
-	err = db.Ping()
+	for i := 1; i < 5; i++ {
+		// Check connection with exponential back-off
+		err = db.Ping()
+		if err != nil {
+			time.Sleep(time.Duration(1 << i) * time.Second)
+			continue
+		}
+		break
+	}
 	if err != nil {
 		return nil, err
 	}

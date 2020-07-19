@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+
 	"user-app/pkg/server"
 	"user-app/pkg/user/repository"
 )
@@ -49,7 +50,7 @@ func main() {
 	flag.StringVar(&mysqlHost, "mysqlHost", "localhost", "host of mysql")
 	flag.IntVar(&mysqlPort, "mysqlPort", 3306, "mysql port")
 	flag.StringVar(&mysqlUser, "mysqlUser", "root", "mysql user")
-	flag.StringVar(&mysqlPassword, "mysqlPassword", "", "mysql password")
+	flag.StringVar(&mysqlPassword, "mysqlPassword", "1234", "mysql password")
 	flag.StringVar(&mysqlDatabase, "mysqlDatabase", "userapp", "mysql database name")
 	flag.Parse()
 	server.InitOAuth(clientId, clientSecret)

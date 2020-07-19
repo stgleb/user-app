@@ -7,6 +7,10 @@ all: get-tools vendor-sync lint vet
 compose:
 	docker-compose up
 
+docker-build:
+	docker build -t stgleb/user-app -f Dockerfile.server .
+	docker build -t stgleb/mysql -f Dockerfile.database .
+
 get-tools:
 	go get -u golang.org/x/lint/golint
 
