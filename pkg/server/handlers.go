@@ -1,12 +1,14 @@
 package server
 
 import (
-	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
 	"user-app/pkg/user"
@@ -35,7 +37,7 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) userInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["id"]
-	u, err := s.repo.FindById(userId)
+	u, err := s.repo.FindById(r.Context(), userId)
 	if err != nil && err == user.NotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -51,7 +53,7 @@ func (s *Server) userInfo(w http.ResponseWriter, r *http.Request) {
 func (s *Server) editUserInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["id"]
-	u, err := s.repo.FindById(userId)
+	u, err := s.repo.FindById(r.Context(), userId)
 	if err != nil && err == user.NotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -64,7 +66,7 @@ func (s *Server) editUserInfo(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		phone := r.FormValue("phone")
 		address := r.FormValue("address")
-		u, err := s.repo.FindByEmail(email)
+		u, err := s.repo.FindByEmail(r.Context(), email)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -72,12 +74,13 @@ func (s *Server) editUserInfo(w http.ResponseWriter, r *http.Request) {
 		u.Name = name
 		u.Telephone = phone
 		u.Address = address
-		userId, err := s.repo.Store(u)
+		u.Email = email
+		err = s.repo.Update(r.Context(), u)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, fmt.Sprintf("/user/%s", userId), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusFound)
 	}
 }
 
@@ -88,8 +91,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	} else {
 		password := r.FormValue("password")
 		email := r.FormValue("email")
-
-		u, err := s.repo.FindByEmail(email)
+		u, err := s.repo.FindByEmail(r.Context(), email)
 		if err == user.NotFound {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -99,7 +101,8 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		passwordHash := sha256.Sum256([]byte(password))
-		if !bytes.Equal(u.PasswordHash, passwordHash[:]) {
+		hexPassword := hex.EncodeToString(passwordHash[:])
+		if !strings.EqualFold(u.PasswordHash, hexPassword) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -125,28 +128,28 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 		phone := r.FormValue("phone")
 		address := r.FormValue("address")
-
-		if u, _ := s.repo.FindByEmail(email); u != nil {
+		if u, _ := s.repo.FindByEmail(r.Context(), email); u != nil {
 			http.Error(w, fmt.Sprintf("user with email %s already exists", email),
 				http.StatusConflict)
 			return
 		}
-
 		passwordHash := sha256.Sum256([]byte(password))
+		hexPassword := hex.EncodeToString(passwordHash[:])
 		u := &user.User{
+			Id:           uuid.New().String(),
 			Name:         username,
 			Email:        email,
-			PasswordHash: passwordHash[:],
+			PasswordHash: hexPassword,
 			Telephone:    phone,
 			Address:      address,
 		}
-		// Store user info in session cookie
-		if err := s.loginUser(u.Id, w, r); err != nil {
+		userId, err := s.repo.Store(r.Context(), u)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		userId, err := s.repo.Store(u)
-		if err != nil {
+		// Store user info in session cookie
+		if err := s.loginUser(u.Id, w, r); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -160,9 +163,8 @@ func (s *Server) forgetPassword(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, nil)
 		return
 	}
-
 	email := r.FormValue("email")
-	_, err := s.repo.FindByEmail(email)
+	_, err := s.repo.FindByEmail(r.Context(), email)
 	if err == user.NotFound {
 		http.NotFound(w, r)
 		return
@@ -171,7 +173,7 @@ func (s *Server) forgetPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := s.sendResetPasswordEmail(r.Host, email); err != nil {
+	if err := s.sendResetPasswordEmail(r.Context(), r.Host, email); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -186,13 +188,12 @@ func (s *Server) resetPassword(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "token is missing", http.StatusBadRequest)
 			return
 		}
-		token, err := s.repo.GetByToken(values[0])
+		token, err := s.repo.GetByToken(r.Context(), values[0])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		token.Used = true
-		if err := s.repo.StoreToken(token); err != nil {
+		if err := s.repo.DisableToken(r.Context(), token.Value); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -205,7 +206,7 @@ func (s *Server) resetPassword(w http.ResponseWriter, r *http.Request) {
 	} else {
 		password := r.FormValue("password")
 		email := r.FormValue("email")
-		u, err := s.repo.FindByEmail(email)
+		u, err := s.repo.FindByEmail(r.Context(), email)
 		if err == user.NotFound {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -215,12 +216,12 @@ func (s *Server) resetPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		hash := sha256.Sum256([]byte(password))
-		u.PasswordHash = hash[:]
-		if _, err := s.repo.Store(u); err != nil {
+		u.PasswordHash = hex.EncodeToString(hash[:])
+		if err := s.repo.Update(r.Context(), u); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte("Password has been changed"))
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 

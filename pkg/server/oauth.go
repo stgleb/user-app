@@ -58,18 +58,19 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Codepath for login of existing user
+	_, err = s.repo.FindById(r.Context(), u.Id)
+	if err == user.NotFound {
+		_, err := s.repo.Store(r.Context(), u)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 	// Store user info in session cookie
 	if err := s.loginUser(u.Id, w, r); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	// Codepath for login of existing user
-	_, err = s.repo.FindById(u.Id)
-	if err == user.NotFound {
-		_, err := s.repo.Store(u)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
 	}
 	http.Redirect(w, r, fmt.Sprintf("/user/%s", u.Id), http.StatusFound)
 }

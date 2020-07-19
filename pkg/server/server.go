@@ -1,15 +1,13 @@
 package server
 
 import (
-	"html/template"
-	"net/http"
-
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+	"html/template"
+	"net/http"
 
 	"user-app/pkg/user/repository"
-	"user-app/pkg/user/repository/memory"
 )
 
 var store *sessions.CookieStore
@@ -39,7 +37,8 @@ type Server struct {
 	templateMap    map[string]*template.Template
 }
 
-func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, smtpUser, smtpPassword, googleApiKey string) (*Server, error) {
+func NewServer(addr, templatesDir, repositoryType string, repositoryOpts repository.Opts, smtpServerHost string,
+	smtpServerPort int, smtpUser, smtpPassword, googleApiKey string) (*Server, error) {
 	router := mux.NewRouter()
 	srv := &Server{
 		SmtpServerHost: smtpServerHost,
@@ -66,8 +65,12 @@ func NewServer(addr, templatesDir, smtpServerHost string, smtpServerPort int, sm
 		Handler: router,
 	}
 	srv.srv = httpSrv
-	srv.repo = memory.NewRepository()
-	err := srv.ParseTemplates(srv.templateMap, templatesDir)
+	repo, err := NewRepository(repositoryType, repositoryOpts)
+	if err != nil {
+		return nil, err
+	}
+	srv.repo = repo
+	err = srv.ParseTemplates(srv.templateMap, templatesDir)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/smtp"
 
@@ -10,7 +11,7 @@ import (
 	"user-app/pkg/user"
 )
 
-func (s *Server) sendResetPasswordEmail(hostName string, email string) error {
+func (s *Server) sendResetPasswordEmail(ctx context.Context, hostName string, email string) error {
 	t := s.templateMap[Email]
 	buffer := &bytes.Buffer{}
 	tokenValue := uuid.New().String()
@@ -19,7 +20,7 @@ func (s *Server) sendResetPasswordEmail(hostName string, email string) error {
 		Value: tokenValue,
 		Used:  false,
 	}
-	if err := s.repo.StoreToken(token); err != nil {
+	if err := s.repo.StoreToken(ctx, token); err != nil {
 		return err
 	}
 	err := t.Execute(buffer, struct {
@@ -34,12 +35,12 @@ func (s *Server) sendResetPasswordEmail(hostName string, email string) error {
 	if err != nil {
 		return err
 	}
-	if err := smtp.SendMail(fmt.Sprintf("%s:%d", s.SmtpServerHost, s.SmtpServerPort),
+	if err := smtp.SendMail(
+		fmt.Sprintf("%s:%d", s.SmtpServerHost, s.SmtpServerPort),
 		smtp.PlainAuth("", s.SmtpUser,
 			s.SmtpPassword, s.SmtpServerHost),
 		s.EmailFrom, []string{email}, buffer.Bytes()); err != nil {
 		return err
 	}
-
 	return nil
 }

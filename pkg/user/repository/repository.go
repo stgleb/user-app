@@ -1,27 +1,45 @@
 package repository
 
-import "user-app/pkg/user"
+import (
+	"context"
+	"user-app/pkg/user"
+)
 
 type userReader interface {
-	FindById(id string) (*user.User, error)
-	FindByEmail(email string) (*user.User, error)
-	FindAll() ([]*user.User, error)
+	FindById(context.Context, string) (*user.User, error)
+	FindByEmail(context.Context, string) (*user.User, error)
 }
 
 type userWriter interface {
-	Update(user *user.User) error
-	Store(user *user.User) (string, error)
+	Update(context.Context, *user.User) error
+	Store(context.Context, *user.User) (string, error)
 }
 
 type tokenRepository interface {
-	StoreToken(*user.Token) error
-	GetByEmail(string) (*user.Token, error)
-	GetByToken(string) (*user.Token, error)
-	RevokeToken(string) error
+	StoreToken(context.Context, *user.Token) error
+	GetByEmail(context.Context, string) (*user.Token, error)
+	GetByToken(context.Context, string) (*user.Token, error)
+	DisableToken(context.Context, string) error
 }
 
 type Repository interface {
 	userReader
 	userWriter
 	tokenRepository
+}
+
+type MemoryOpts struct{}
+
+type MySQLOpts struct {
+	Protocol     string
+	Host         string
+	Port         int
+	User         string
+	Password     string
+	DatabaseName string
+}
+
+type Opts struct {
+	Mysql  MySQLOpts
+	Memory MemoryOpts
 }
