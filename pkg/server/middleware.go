@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func secureMiddleware(f func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter,*http.Request) {
+func secureMiddleware(f func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, err := store.Get(r, "user")
 		if err != nil {

@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+
 	"user-app/pkg/user/repository"
 	"user-app/pkg/user/repository/memory"
 	"user-app/pkg/user/repository/mysql"

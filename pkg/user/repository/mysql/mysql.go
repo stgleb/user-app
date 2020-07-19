@@ -63,7 +63,7 @@ func (r *Repository) FindById(ctx context.Context, id string) (*user.User, error
 	return nil, user.NotFound
 }
 
-func (r *Repository) FindByEmail(ctx context.Context,email string) (*user.User, error) {
+func (r *Repository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (r *Repository) FindByEmail(ctx context.Context,email string) (*user.User, 
 	return nil, user.NotFound
 }
 
-func (r *Repository) Update(ctx context.Context,u *user.User) error {
+func (r *Repository) Update(ctx context.Context, u *user.User) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (r *Repository) Update(ctx context.Context,u *user.User) error {
 	return nil
 }
 
-func (r *Repository) Store(ctx context.Context,user *user.User) (string, error) {
+func (r *Repository) Store(ctx context.Context, user *user.User) (string, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return "", err
@@ -123,7 +123,7 @@ func (r *Repository) Store(ctx context.Context,user *user.User) (string, error) 
 	return user.Id, nil
 }
 
-func (r *Repository) StoreToken(ctx context.Context,token *user.Token) error {
+func (r *Repository) StoreToken(ctx context.Context, token *user.Token) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (r *Repository) StoreToken(ctx context.Context,token *user.Token) error {
 	return nil
 }
 
-func (r *Repository) GetByEmail(ctx context.Context,email string) (*user.Token, error) {
+func (r *Repository) GetByEmail(ctx context.Context, email string) (*user.Token, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
